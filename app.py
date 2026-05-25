@@ -21,22 +21,48 @@ def load_resources():
         print("Model or Scaler files not found. Please train the model first.")
 
 import yt_dlp
+import time
+
+# Simple in-memory cache
+metadata_cache = {}
+CACHE_EXPIRY = 300 # 5 minutes
 
 def fetch_video_metadata(url):
+    # Check cache
+    if url in metadata_cache:
+        cached_data, timestamp = metadata_cache[url]
+        if time.time() - timestamp < CACHE_EXPIRY:
+            print(f"Serving from cache: {url}")
+            return cached_data
+
     ydl_opts = {
         'quiet': True,
         'no_warnings': True,
         'skip_download': True,
+        'extract_flat': True,  # Don't process nested info
+        'nocheckcertificate': True,
+        'ignoreerrors': True,
+        'no_color': True,
+        'geo_bypass': True,
+        'no_playlist': True,
     }
+    
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
-            info = ydl.extract_info(url, download=False)
-            return {
-                "views": info.get("view_count", 0),
-                "likes": info.get("like_count", 0),
+            # Setting process=False makes it much faster (only parses basic metadata)
+            info = ydl.extract_info(url, download=False, process=False) 
+            if not info: return None
+            
+            result = {
+                "views": info.get("view_count") or 0,
+                "likes": info.get("like_count") or 0,
                 "title": info.get("title", "Unknown Video"),
                 "thumbnail": info.get("thumbnail", "")
             }
+            
+            # Save to cache
+            metadata_cache[url] = (result, time.time())
+            return result
         except Exception as e:
             print(f"Error fetching metadata: {e}")
             return None

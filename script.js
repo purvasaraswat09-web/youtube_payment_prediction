@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('video-meta').textContent = `${parseInt(data.views).toLocaleString()} views • ${parseInt(data.likes).toLocaleString()} likes`;
 
             // Update Earnings
-            animateValue(amountDisplay, 0, data.predicted_earning, 1000);
+            animateValue(amountDisplay, 0, data.predicted_earning, 400);
             
             const baseEarning = (data.views / 1000) * 2.5;
             const bonusEarning = data.exact_earning - baseEarning;
