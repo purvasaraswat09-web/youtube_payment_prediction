@@ -313,6 +313,12 @@ footer {
 }
 
 @media (max-width: 480px) {
-    .amount { font-size: 3.5rem; }
+    .amount { font-size: 3rem; }
+    .currency { font-size: 1.5rem; }
     .container { padding: 30px 15px; }
+    .logo h1 { font-size: 1.8rem; }
+    .logo .icon { font-size: 1.5rem; }
+    .card { padding: 20px; }
+    .stats-grid { grid-template-columns: 1fr; gap: 10px; }
+    .video-thumb { width: 100px; height: 56px; }
 }
