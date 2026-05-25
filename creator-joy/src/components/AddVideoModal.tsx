@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Youtube, Plus, Calendar, User, Search, Link as LinkIcon, Loader2 } from "lucide-react";
+import { X, Plus, Calendar, User, Search, Link as LinkIcon, Loader2 } from "lucide-react";
+import { Youtube } from "./icons";
 import { extractVideoId, getYouTubeVideoData } from "@/lib/youtube";
 
 interface AddVideoModalProps {

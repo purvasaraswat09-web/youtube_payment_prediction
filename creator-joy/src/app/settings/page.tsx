@@ -9,13 +9,13 @@ import {
   Key, 
   Clock,
   RefreshCcw,
-  Youtube,
   Settings,
   Bell,
   Search,
   CheckCircle2,
   AlertCircle
 } from "lucide-react";
+import { Youtube } from "@/components/icons";
 import { motion } from "framer-motion";
 import { BONUS_TIERS } from "@/lib/payout";
 
