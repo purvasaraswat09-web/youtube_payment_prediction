@@ -39,19 +39,21 @@ def fetch_video_metadata(url):
         'quiet': True,
         'no_warnings': True,
         'skip_download': True,
-        'extract_flat': True,  # Don't process nested info
         'nocheckcertificate': True,
-        'ignoreerrors': True,
+        'ignoreerrors': False, # Set to False to see what's wrong
         'no_color': True,
         'geo_bypass': True,
         'no_playlist': True,
+        'limit_rate': '100k', # We only need metadata
     }
     
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        try:
-            # Setting process=False makes it much faster (only parses basic metadata)
-            info = ydl.extract_info(url, download=False, process=False) 
-            if not info: return None
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            # We must process the info to get view_count/like_count reliably
+            info = ydl.extract_info(url, download=False) 
+            if not info:
+                print(f"No info returned for URL: {url}")
+                return None
             
             result = {
                 "views": info.get("view_count") or 0,
@@ -63,9 +65,10 @@ def fetch_video_metadata(url):
             # Save to cache
             metadata_cache[url] = (result, time.time())
             return result
-        except Exception as e:
-            print(f"Error fetching metadata: {e}")
-            return None
+    except Exception as e:
+        print(f"Detailed Error fetching metadata: {str(e)}")
+        # Check for common errors and provide fallback or more info
+        return None
 
 @app.route("/predict", methods=["POST"])
 def predict():
