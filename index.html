@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CreatorRevenue | AI Earnings Predictor</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="bg-blur"></div>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span class="icon">📊</span>
+                <h1>Creator<span>Revenue</span></h1>
+            </div>
+            <p class="subtitle">AI-Powered YouTube Earning Estimation</p>
+        </header>
+
+        <main>
+            <div class="card glass">
+                <div class="input-group">
+                    <label for="video-url">YouTube Video URL</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="video-url" placeholder="https://youtube.com/watch?v=..." spellcheck="false">
+                        <span class="unit">🔗</span>
+                    </div>
+                </div>
+
+                <button id="predict-btn" class="btn-primary">
+                    <span class="btn-text">Fetch & Predict</span>
+                    <div class="loader" id="loader"></div>
+                </button>
+            </div>
+
+            <div id="result-card" class="card glass result-card hidden">
+                <div id="video-info" class="video-info">
+                    <img id="video-thumb" src="" alt="" class="video-thumb">
+                    <div class="video-details">
+                        <h4 id="video-title">Video Title</h4>
+                        <p id="video-meta">0 views • 0 likes</p>
+                    </div>
+                </div>
+                <div class="result-header">
+                    <h3>Estimated Total Earnings</h3>
+                    <div class="badge">ML PREDICTION</div>
+                </div>
+                <div class="earnings-display">
+                    <span class="currency">$</span>
+                    <span id="predicted-price" class="amount">0.00</span>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="label">Base Earning (CPM)</span>
+                        <span id="base-earning" class="value">$0.00</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Engagement Bonus</span>
+                        <span id="bonus-earning" class="value">$0.00</span>
+                    </div>
+                </div>
+                <div class="disclaimer">
+                    *Based on $2.5 CPM and engagement-based bonus algorithms.
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 CreatorRevenue AI. All datasets synthetic for demonstration.</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
