@@ -1,11 +1,22 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import joblib
 import numpy as np
 import os
+import yt_dlp
+import time
 
-app = Flask(__name__)
-CORS(app)
+app = FastAPI(title="CreatorJoy Prediction Engine (v1-prototype)")
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Load model and scaler
 model = None
@@ -13,19 +24,24 @@ scaler = None
 
 def load_resources():
     global model, scaler
-    if os.path.exists("earnings_model.pkl") and os.path.exists("scaler.pkl"):
-        model = joblib.load("earnings_model.pkl")
-        scaler = joblib.load("scaler.pkl")
-        print("Model and Scaler loaded successfully.")
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    model_path = os.path.join(current_dir, "earnings_model.pkl")
+    scaler_path = os.path.join(current_dir, "scaler.pkl")
+    
+    if os.path.exists(model_path) and os.path.exists(scaler_path):
+        model = joblib.load(model_path)
+        scaler = joblib.load(scaler_path)
+        print(f"Model and Scaler loaded successfully from {current_dir}.")
     else:
-        print("Model or Scaler files not found. Please train the model first.")
+        print(f"Model or Scaler files not found in {current_dir}. Please train the model first.")
 
-import yt_dlp
-import time
 
 # Simple in-memory cache
 metadata_cache = {}
 CACHE_EXPIRY = 300 # 5 minutes
+
+class PredictRequest(BaseModel):
+    video_url: str
 
 def fetch_video_metadata(url):
     # Check cache
@@ -40,16 +56,15 @@ def fetch_video_metadata(url):
         'no_warnings': True,
         'skip_download': True,
         'nocheckcertificate': True,
-        'ignoreerrors': False, # Set to False to see what's wrong
+        'ignoreerrors': False,
         'no_color': True,
         'geo_bypass': True,
         'no_playlist': True,
-        'limit_rate': '100k', # We only need metadata
+        'limit_rate': '100k',
     }
     
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            # We must process the info to get view_count/like_count reliably
             info = ydl.extract_info(url, download=False) 
             if not info:
                 print(f"No info returned for URL: {url}")
@@ -67,26 +82,25 @@ def fetch_video_metadata(url):
             return result
     except Exception as e:
         print(f"Detailed Error fetching metadata: {str(e)}")
-        # Check for common errors and provide fallback or more info
         return None
 
-@app.route("/predict", methods=["POST"])
-def predict():
+@app.on_event("startup")
+async def startup_event():
+    load_resources()
+
+@app.post("/predict")
+async def predict(request_data: PredictRequest):
     if model is None or scaler is None:
         load_resources()
         if model is None:
-            return jsonify({"error": "Model not trained"}), 500
+            raise HTTPException(status_code=500, detail="Model not trained")
 
-    data = request.json
-    video_url = data.get("video_url")
+    video_url = request_data.video_url
     
-    if not video_url:
-        return jsonify({"error": "No URL provided"}), 400
-
     # Fetch metadata
     metadata = fetch_video_metadata(video_url)
     if not metadata:
-        return jsonify({"error": "Could not fetch metadata for this URL"}), 404
+        raise HTTPException(status_code=404, detail="Could not fetch metadata for this URL")
 
     try:
         views = float(metadata["views"])
@@ -107,18 +121,17 @@ def predict():
         elif likes > 10000: bonus_exact = 100
         total_exact = payment_exact + bonus_exact
 
-        return jsonify({
+        return {
             "predicted_earning": round(float(prediction), 2),
             "exact_earning": round(total_exact, 2),
             "views": views,
             "likes": likes,
             "title": metadata["title"],
             "thumbnail": metadata["thumbnail"]
-        })
+        }
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        raise HTTPException(status_code=400, detail=str(e))
 
 if __name__ == "__main__":
-    load_resources()
-    # Binding to 0.0.0.0 allows access from other devices on the same network
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=5000)
